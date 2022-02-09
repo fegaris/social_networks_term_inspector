@@ -30,7 +30,7 @@ Now you can import the library in your projects as a regular library using
 # How calculate the engagement
 
 | Social Network   |      Formula      |
-|----------|:-------------:|------:|
+| ------------- | ------------- |
 | YouTube |  (Likes + Favs + Shared + Comments) / Views|
 | LinkedIn |    (Clicks + Likes + Comments) / Views   |
 | Tik-Tok | (Likes + Comments + Shared) / Views |

@@ -1,6 +1,6 @@
-from asyncio.windows_events import NULL
-from urllib import response
-from django.http import HttpResponse
+#from asyncio.windows_events import NULL
+#from urllib import response
+#from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 
@@ -19,8 +19,7 @@ def index(request):
             'useTwich': request.POST.get('useTwich'),
          })()
         response = APIHub.findInAllAPIsByTerm(query)
-        
-    return render(request, 'index.html', {response:response})
+    return render(request, 'index.html', {'response':response})
     
 
         

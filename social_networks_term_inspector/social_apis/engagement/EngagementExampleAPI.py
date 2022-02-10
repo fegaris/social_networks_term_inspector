@@ -1,6 +1,6 @@
 from response.EngagementResponse import *
 
-class APITwitter:
+class APIExample:
     def getEngagement(user):
         ## Hacemos la llamada a la API correspondiente, realizamos los calculos 
         # necesarios y devolvemos el objeto EngagementResponse con los valores
@@ -8,5 +8,5 @@ class APITwitter:
 
 
 #print(APITwitter.getEngagement('Auron'))
-response = APITwitter.getEngagement('Auron')
+response = APIExample.getEngagement('Auron')
 print(response.data['engagement'])

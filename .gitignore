@@ -127,8 +127,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-
-
 # editores
 .vscode
 credentials.py
+
+# Instagram (Alejandro)
+cookies
+.log

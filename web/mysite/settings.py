@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
 
     'services',
+    'social_networks_term_inspector'
 ]
 
 MIDDLEWARE = [

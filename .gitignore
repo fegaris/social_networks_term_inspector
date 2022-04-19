@@ -134,3 +134,5 @@ credentials.py
 # Instagram (Alejandro)
 cookies
 .log
+responseTest.json
+Instagram.py

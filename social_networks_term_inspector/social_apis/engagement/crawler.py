@@ -11,8 +11,7 @@ from response.EngagementResponse import EngagementResponse
 
 class InstagramCrawler(object):
     def __init__(self, **kwargs):
-        defaultAttr = dict(username = '', logger = None, maximum = 0,
-                            loginUser = '', loginPass = '', mediaMetadata = False, interactive = False,
+        defaultAttr = dict(logger = None, maximum = 0, loginUser = '', loginPass = '', mediaMetadata = False, interactive = False,
                             profileMetadata = False, cookiejar = 'cookies', filterLocation = None,
                             mediaTypes = ['image', 'video', 'story-image', 'story-video'],
                             tag = False, location = False, verbose = 0, includeLocation = False,
@@ -78,30 +77,25 @@ class InstagramCrawler(object):
 
         return logger
 
-    def scrape(self):
+    def scrape(self, userName):
         # Get users information
         self.session.headers.update({'user-agent': STORIES_UA})
         try:
             # Get the user metadata.
-            user = self.getUserInfo(self.username)
-
-            # TO DO -- Create test mode
-            # Test mode will load json into a file for be more readable
-            """
-            f = open('test', 'w')
-            f.write(json.dumps(user))
-            """
+            user = self.getUserInfo(userName)
 
             if not user:
-                self.logger.error('Error getting user details for {0}. Please verify that user.'.format(self.username))
+                self.logger.error('Error getting user details for {0}. Please verify that user.'.format(userName))
             elif user and user['user']['is_private']:
-                self.logger.info('User {0} is private'.format(self.username))
+                self.logger.info('User {0} is private'.format(userName))
+            else:
+                self.logger.info('User {0} info scrapped'.format(userName))
 
         except ValueError:
-            self.logger.error("Unable to scrape user - %s" % self.username)
-        finally:
-            self.quit = True
-            self.logout()
+            self.logger.error("Unable to scrape user - %s" % userName)
+        #finally:
+            #self.quit = True
+            #self.logout()
 
         return user
 
@@ -135,7 +129,7 @@ class InstagramCrawler(object):
                    
                 raise
 
-    def getUserInfo(self, username=''):
+    def getUserInfo(self, username):
         # Fetches user metadata
         resp = self.getJson(BASE_URL + username)
         return resp
@@ -147,6 +141,15 @@ class InstagramCrawler(object):
         if resp is not None:
             data = resp.text.split("window._sharedData = ")[1].split(";</script>")[0]
             return self.convertToJson(data)['entry_data']['ProfilePage'][0]['graphql']
+    
+    def getJsonInFile(self, userName):
+        # For test, will load json into a file to make it easier to analize
+        user = self.scrape(userName)
+
+        with open('responseTest.json', 'w') as f:
+            f.write(json.dumps(user))
+
+        return 'Response dumped into file'
 
     def convertToJson(self, text):
         # Convert text into JSON
@@ -239,24 +242,49 @@ class InstagramCrawler(object):
             except requests.exceptions.RequestException:
                 self.logger.warning('Failed to log out ' + self.loginUser)
 
-    def getFollowers(self):
-        user = self.scrape()
+    def getFollowers(self, userName):
+        user = self.scrape(userName)
         return user['user']['edge_followed_by']['count']
 
-    def getEngagement(self):
-        user = self.scrape()
+    def getTotalMedia(self, userName):
+        user = self.scrape(userName)
+        return user['user']['edge_owner_to_timeline_media']['count']
+
+    def getFollows(self, userName):
+        user = self.scrape(userName)
+        return user['user']['edge_follow']['count']
+
+    def getVideosTimeline(self, userName):
+        user = self.scrape(userName)
+        return user['user']['edge_felix_video_timeline']['count']
+    
+    def getPhotosTimeline(self, userName):
+        user = self.scrape(userName)
+        return user['user']['edge_owner_to_timeline_media']['count'] - self.getTotalMedia(userName)
+
+    def getEngagement(self, userName):
+        user = self.scrape(userName)
 
         followers = user['user']['edge_followed_by']['count']
         timeline = user['user']['edge_owner_to_timeline_media']
 
         likes = 0
         comments = 0
+        locs = []
 
         for i in range(0, timeline['count']):
             likes += timeline['edges'][i]['node']['edge_liked_by']['count']
             comments += timeline['edges'][i]['node']['edge_media_to_comment']['count']
+            
+            if timeline['edges'][i]['node']['location'] is not None:
+                locs.append(timeline['edges'][i]['node']['location']['name'])
 
             if i == 2:
                 break
             
-        return EngagementResponse(True, [], {'engagement': (likes + comments) / followers})
+        return EngagementResponse(True, [], {
+            'engagement': (likes + comments) / followers,
+            'followers': followers,
+            'likes': likes,
+            'comments': comments,
+            'locations': locs})
